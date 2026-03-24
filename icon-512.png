@@ -1,0 +1,47 @@
+# 🃏 Card Scanner — Pokémon & Yu-Gi-Oh
+
+A mobile-first PWA that uses AI to identify trading cards and fetch live market prices.
+
+## Features
+
+- 📷 Camera scanning or image upload
+- 🤖 AI card identification via Claude (Anthropic)
+- 💰 Live Pokémon prices from TCGPlayer via Pokemon TCG API
+- 💰 Live Yu-Gi-Oh prices from TCGPlayer, Card Market, eBay & more via YGOPRODeck
+- 📱 Installable as a home screen app (PWA)
+- 🌙 Dark mode, mobile optimised
+
+## Setup
+
+1. Deploy to Netlify or GitHub Pages (no build step needed — it's a plain HTML file)
+2. Visit the app and enter your [Anthropic API key](https://console.anthropic.com)
+3. Your key is saved to your device (localStorage) — you only enter it once
+
+## APIs Used
+
+| API | Purpose | Key Required? |
+|-----|---------|--------------|
+| Anthropic Claude | Card image recognition | ✅ Yes (your own key) |
+| [Pokemon TCG API](https://pokemontcg.io) | Pokémon card prices | ❌ No |
+| [YGOPRODeck](https://ygoprodeck.com/api-guide/) | Yu-Gi-Oh card prices | ❌ No |
+
+## Deploy to Netlify
+
+1. Push this repo to GitHub
+2. Go to [app.netlify.com](https://app.netlify.com) → New site → Import from GitHub
+3. Select this repo, leave build settings blank, hit Deploy
+4. Done ✅
+
+## Files
+
+```
+card-scanner/
+├── index.html      ← Main app
+├── manifest.json   ← PWA manifest
+├── sw.js           ← Service worker (offline support)
+├── icon-192.png    ← App icon (add your own)
+├── icon-512.png    ← App icon large (add your own)
+└── README.md
+```
+
+> **Note on icons:** Add your own `icon-192.png` and `icon-512.png` for the home screen icon. Any 192×192 and 512×512 PNG will work.

@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Card Scanner">
+<title>Card Scanner — Pokémon & Yu-Gi-Oh</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: #111118;
+    --border: #1e1e2e;
+    --accent-poke: #ffcb05;
+    --accent-ygo: #8b2fc9;
+    --accent-blue: #3b82f6;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow-poke: 0 0 30px rgba(255,203,5,0.3);
+    --glow-ygo: 0 0 30px rgba(139,47,201,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+  }
+
+  header { text-align: center; margin-bottom: 40px; }
+
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 900;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--accent-poke) 0%, #fff 40%, var(--accent-ygo) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  .logo-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+    margin: 20px auto;
+    max-width: 300px;
+  }
+
+  .api-section {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+
+  .api-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .api-row { display: flex; gap: 10px; align-items: center; }
+
+  .api-input {
+    flex: 1;
+    background: #0a0a0f;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .api-input:focus { border-color: var(--accent-blue); }
+  .api-input::placeholder { color: var(--muted); }
+
+  .api-save-btn {
+    background: var(--accent-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .api-save-btn:hover { opacity: 0.8; }
+  .api-saved { color: #22c55e; font-size: 12px; margin-top: 6px; display: none; }
+
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+
+  .upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(59,130,246,0.06), transparent 70%);
+    pointer-events: none;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 40px rgba(59,130,246,0.15);
+  }
+
+  .upload-icon { font-size: 48px; margin-bottom: 16px; display: block; filter: drop-shadow(0 0 12px rgba(255,203,5,0.4)); }
+  .upload-title { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 2px; color: var(--text); margin-bottom: 8px; }
+  .upload-hint { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .upload-hint span { color: var(--accent-blue); cursor: pointer; }
+  #fileInput { display: none; }
+
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.3);
+  }
+
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(59,130,246,0.4); }
+  .btn-primary:disabled { opacity: 0.4; transform: none; cursor: not-allowed; }
+
+  .preview-wrap { display: none; text-align: center; margin-bottom: 24px; }
+  .preview-wrap img {
+    max-width: 280px;
+    max-height: 380px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    object-fit: contain;
+  }
+
+  .status-bar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-blue);
+    flex-shrink: 0;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .status-text { font-size: 13px; color: var(--muted); letter-spacing: 1px; }
+
+  .result-card {
+    display: none;
+    background: var(--panel);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-header {
+    padding: 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-type-badge {
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .badge-pokemon { background: rgba(255,203,5,0.15); color: var(--accent-poke); border: 1px solid rgba(255,203,5,0.3); }
+  .badge-yugioh { background: rgba(139,47,201,0.15); color: #c084fc; border: 1px solid rgba(139,47,201,0.3); }
+
+  .result-info { flex: 1; }
+
+  .result-name {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .result-meta { font-size: 13px; color: var(--muted); letter-spacing: 1px; line-height: 1.8; }
+  .result-meta strong { color: var(--text); }
+
+  .prices-section { padding: 24px; border-bottom: 1px solid var(--border); }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .price-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+
+  .price-item {
+    background: #0a0a0f;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .price-item:hover { transform: translateY(-2px); }
+  .price-label { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .price-value { font-family: 'Orbitron', monospace; font-size: 18px; font-weight: 700; }
+
+  .price-normal { color: #22c55e; }
+  .price-holofoil { color: var(--accent-poke); text-shadow: var(--glow-poke); }
+  .price-reverseHolo { color: #60a5fa; }
+  .price-1stEdition { color: #f97316; }
+  .price-market { color: #c084fc; text-shadow: var(--glow-ygo); }
+  .price-mid { color: var(--accent-poke); }
+  .price-high { color: #f97316; }
+  .price-low { color: #22c55e; }
+  .price-unlimited { color: #a78bfa; }
+
+  .desc-section { padding: 24px; }
+
+  .ai-description {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+    font-style: italic;
+    border-left: 2px solid var(--accent-blue);
+    padding-left: 16px;
+  }
+
+  .error-box {
+    display: none;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 10px;
+    padding: 16px 20px;
+    color: #fca5a5;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    width: min(500px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-title { font-family: 'Orbitron', monospace; font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; color: var(--accent-blue); }
+
+  #cameraVideo { width: 100%; border-radius: 10px; background: #000; }
+
+  .modal-btns { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--text); color: var(--text); }
+  .btn-snap { background: linear-gradient(135deg, var(--accent-poke), #f59e0b); color: #000; font-weight: 700; }
+  .no-price { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  /* Install banner */
+  .install-banner {
+    display: none;
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,47,201,0.15));
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+
+  .install-banner span { flex: 1; color: var(--text); }
+  .install-btn {
+    background: var(--accent-blue);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  @media (max-width: 480px) {
+    .result-header { flex-direction: column; }
+    .price-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">Card Scanner</div>
+    <div class="logo-sub">Pokémon · Yu-Gi-Oh · Price Intel</div>
+    <div class="divider"></div>
+  </header>
+
+  <!-- PWA Install Banner -->
+  <div class="install-banner" id="installBanner">
+    <span>📱 Add to your home screen for the best experience!</span>
+    <button class="install-btn" id="installBtn">Install</button>
+    <button class="btn-ghost" style="padding:6px 10px;font-size:9px;" onclick="document.getElementById('installBanner').style.display='none'">✕</button>
+  </div>
+
+  <!-- API Key -->
+  <div class="api-section">
+    <span class="api-label">🔑 Anthropic API Key (for card recognition)</span>
+    <div class="api-row">
+      <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-..." />
+      <button class="api-save-btn" onclick="saveApiKey()">Save</button>
+    </div>
+    <div class="api-saved" id="apiSaved">✓ Key saved to this device</div>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <span class="upload-icon">🃏</span>
+    <div class="upload-title">Drop Your Card Here</div>
+    <div class="upload-hint">
+      Drag & drop a card image, or <span onclick="document.getElementById('fileInput').click()">browse files</span>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" capture="environment" />
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📁 Choose Image</button>
+    <button class="btn btn-primary" onclick="openCamera()">📷 Camera</button>
+    <button class="btn btn-primary" id="scanBtn" onclick="scanCard()" disabled>🔍 Identify & Price</button>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-wrap" id="previewWrap">
+    <img id="previewImg" src="" alt="Card preview" />
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">
+    <div class="status-dot"></div>
+    <div class="status-text" id="statusText">Scanning card...</div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- Result -->
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <div>
+        <div id="cardTypeBadge" class="card-type-badge badge-pokemon">Pokémon</div>
+      </div>
+      <div class="result-info">
+        <div class="result-name" id="cardName">—</div>
+        <div class="result-meta" id="cardMeta"></div>
+      </div>
+    </div>
+    <div class="prices-section">
+      <div class="section-title">💰 Market Prices (USD)</div>
+      <div class="price-grid" id="priceGrid"></div>
+    </div>
+    <div class="desc-section">
+      <div class="section-title">🤖 AI Analysis</div>
+      <div class="ai-description" id="aiDescription"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Camera Modal -->
+<div class="modal-overlay" id="cameraModal">
+  <div class="modal">
+    <div class="modal-title">📷 Camera Scanner</div>
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <canvas id="cameraCanvas" style="display:none"></canvas>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeCamera()">Cancel</button>
+      <button class="btn btn-primary btn-snap" onclick="snapPhoto()">📸 Snap</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentImageBase64 = null;
+let cameraStream = null;
+let deferredInstallPrompt = null;
+
+// ── PWA Install ──────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') document.getElementById('installBanner').style.display = 'none';
+  deferredInstallPrompt = null;
+});
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ── API Key (stored in localStorage so it persists) ──────────
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return;
+  localStorage.setItem('anthropic_key', key);
+  const saved = document.getElementById('apiSaved');
+  saved.style.display = 'block';
+  setTimeout(() => saved.style.display = 'none', 2000);
+}
+
+function getApiKey() {
+  return localStorage.getItem('anthropic_key') || document.getElementById('apiKeyInput').value.trim();
+}
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('anthropic_key');
+  if (saved) document.getElementById('apiKeyInput').value = saved;
+});
+
+// ── File input ───────────────────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadImageFile(file);
+});
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) loadImageFile(file);
+});
+
+function loadImageFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    currentImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('previewImg').src = dataUrl;
+    document.getElementById('previewWrap').style.display = 'block';
+    document.getElementById('scanBtn').disabled = false;
+    hideResults();
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── Camera ───────────────────────────────────────────────────
+async function openCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+    document.getElementById('cameraModal').style.display = 'flex';
+  } catch {
+    showError('Camera access denied. Please use the file upload instead.');
+  }
+}
+
+function closeCamera() {
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('cameraModal').style.display = 'none';
+}
+
+function snapPhoto() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  currentImageBase64 = dataUrl.split(',')[1];
+  document.getElementById('previewImg').src = dataUrl;
+  document.getElementById('previewWrap').style.display = 'block';
+  document.getElementById('scanBtn').disabled = false;
+  hideResults();
+  closeCamera();
+}
+
+// ── Main scan ────────────────────────────────────────────────
+async function scanCard() {
+  const apiKey = getApiKey();
+  if (!apiKey) { showError('Please enter your Anthropic API key first.'); return; }
+  if (!currentImageBase64) { showError('Please load a card image first.'); return; }
+
+  setStatus('🤖 Identifying card with AI...');
+  hideResults();
+
+  try {
+    const cardInfo = await identifyCard(apiKey, currentImageBase64);
+    setStatus(`✅ Found: ${cardInfo.name} — fetching prices...`);
+
+    let prices = {};
+    if (cardInfo.type === 'pokemon') {
+      prices = await fetchPokemonPrices(cardInfo.name, cardInfo.set);
+    } else if (cardInfo.type === 'yugioh') {
+      prices = await fetchYugiohPrices(cardInfo.name);
+    }
+
+    displayResult(cardInfo, prices);
+    hideStatus();
+  } catch (err) {
+    hideStatus();
+    showError(`Scan failed: ${err.message}`);
+  }
+}
+
+// ── Claude identification ────────────────────────────────────
+async function identifyCard(apiKey, base64) {
+  const prompt = `You are a trading card game expert. Analyze this card image and return ONLY a JSON object with no markdown, no explanation, just raw JSON.
+
+Identify if this is a Pokémon card or Yu-Gi-Oh card, then extract:
+
+For Pokémon:
+{"type":"pokemon","name":"exact pokemon name","set":"set name","number":"card number if visible","rarity":"rarity","year":"year if visible","description":"one sentence about collector/gameplay value"}
+
+For Yu-Gi-Oh:
+{"type":"yugioh","name":"exact card name as printed","set":"set name if visible","rarity":"rarity","cardType":"Monster/Spell/Trap","year":"year if visible","description":"one sentence about collector/gameplay value"}
+
+If unclear: {"type":"unknown","name":"Unknown Card","description":"Could not identify this card clearly."}
+
+Return ONLY the JSON object.`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    },
+    body: JSON.stringify({
+      model: 'claude-opus-4-5',
+      max_tokens: 500,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: prompt }
+        ]
+      }]
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  const text = data.content.map(b => b.text || '').join('').trim();
+  const clean = text.replace(/```json|```/g, '').trim();
+
+  try { return JSON.parse(clean); }
+  catch { throw new Error('Could not parse card identification response.'); }
+}
+
+// ── Pokémon prices ───────────────────────────────────────────
+async function fetchPokemonPrices(name, set) {
+  try {
+    const query = encodeURIComponent(name);
+    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${query}"&pageSize=10`);
+    if (!res.ok) throw new Error('TCG API error');
+    const data = await res.json();
+    if (!data.data || data.data.length === 0) return { source: 'Pokemon TCG API', note: 'No price data found' };
+
+    let card = data.data[0];
+    if (set) {
+      const setLower = set.toLowerCase();
+      const match = data.data.find(c => c.set?.name?.toLowerCase().includes(setLower));
+      if (match) card = match;
+    }
+
+    const prices = card.tcgplayer?.prices || {};
+    const result = { source: 'TCGPlayer via Pokemon TCG API', cardFound: card.name, set: card.set?.name };
+
+    if (prices.normal) result.Normal = prices.normal.market || prices.normal.mid;
+    if (prices.holofoil) result.Holofoil = prices.holofoil.market || prices.holofoil.mid;
+    if (prices.reverseHolofoil) result['Reverse Holo'] = prices.reverseHolofoil.market || prices.reverseHolofoil.mid;
+    if (prices['1stEditionHolofoil']) result['1st Ed Holo'] = prices['1stEditionHolofoil'].market;
+    if (prices['1stEditionNormal']) result['1st Ed Normal'] = prices['1stEditionNormal'].market;
+
+    return result;
+  } catch (e) {
+    return { source: 'Pokemon TCG API', note: `Could not fetch: ${e.message}` };
+  }
+}
+
+// ── Yu-Gi-Oh prices ──────────────────────────────────────────
+async function fetchYugiohPrices(name) {
+  try {
+    const query = encodeURIComponent(name);
+    let res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${query}`);
+    if (!res.ok) {
+      const fuzzy = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${query}&num=5&offset=0`);
+      if (!fuzzy.ok) throw new Error('YGOPRODeck API error');
+      const fd = await fuzzy.json();
+      if (!fd.data || !fd.data.length) return { source: 'YGOPRODeck', note: 'Card not found' };
+      return extractYgoPrices(fd.data[0]);
+    }
+    const data = await res.json();
+    if (!data.data || !data.data.length) return { source: 'YGOPRODeck', note: 'No data' };
+    return extractYgoPrices(data.data[0]);
+  } catch (e) {
+    return { source: 'YGOPRODeck', note: `Could not fetch: ${e.message}` };
+  }
+}
+
+function extractYgoPrices(card) {
+  const result = { source: 'YGOPRODeck', cardFound: card.name };
+  if (!card.card_prices?.length) return result;
+  const p = card.card_prices[0];
+  if (p.tcgplayer_price) result['TCGPlayer'] = parseFloat(p.tcgplayer_price);
+  if (p.cardmarket_price) result['Card Market'] = parseFloat(p.cardmarket_price);
+  if (p.ebay_price) result['eBay'] = parseFloat(p.ebay_price);
+  if (p.amazon_price) result['Amazon'] = parseFloat(p.amazon_price);
+  if (p.coolstuffinc_price) result['Cool Stuff Inc'] = parseFloat(p.coolstuffinc_price);
+  return result;
+}
+
+// ── Display ──────────────────────────────────────────────────
+function displayResult(cardInfo, prices) {
+  const isPoke = cardInfo.type === 'pokemon';
+  const isYgo = cardInfo.type === 'yugioh';
+
+  const badge = document.getElementById('cardTypeBadge');
+  badge.textContent = isPoke ? '⚡ Pokémon' : (isYgo ? '🔮 Yu-Gi-Oh!' : '🃏 Unknown');
+  badge.className = 'card-type-badge ' + (isPoke ? 'badge-pokemon' : 'badge-yugioh');
+
+  document.getElementById('cardName').textContent = cardInfo.name || 'Unknown Card';
+
+  let meta = '';
+  if (cardInfo.set) meta += `<strong>Set:</strong> ${cardInfo.set}<br>`;
+  if (cardInfo.number) meta += `<strong>Number:</strong> ${cardInfo.number}<br>`;
+  if (cardInfo.rarity) meta += `<strong>Rarity:</strong> ${cardInfo.rarity}<br>`;
+  if (cardInfo.cardType) meta += `<strong>Type:</strong> ${cardInfo.cardType}<br>`;
+  if (cardInfo.year) meta += `<strong>Year:</strong> ${cardInfo.year}<br>`;
+  if (prices.source) meta += `<strong>Price Source:</strong> ${prices.source}`;
+  document.getElementById('cardMeta').innerHTML = meta;
+
+  const grid = document.getElementById('priceGrid');
+  grid.innerHTML = '';
+  const skipKeys = ['source', 'cardFound', 'set', 'note'];
+  const priceKeys = Object.keys(prices).filter(k => !skipKeys.includes(k));
+
+  const colorMap = {
+    'Normal': 'price-normal', 'Holofoil': 'price-holofoil', 'Reverse Holo': 'price-reverseHolo',
+    '1st Ed Holo': 'price-1stEdition', '1st Ed Normal': 'price-1stEdition',
+    'TCGPlayer': 'price-market', 'Card Market': 'price-mid', 'eBay': 'price-high',
+    'Amazon': 'price-low', 'Cool Stuff Inc': 'price-unlimited'
+  };
+
+  if (priceKeys.length === 0) {
+    grid.innerHTML = `<div class="no-price" style="grid-column:1/-1">${prices.note || 'No pricing data available.'}</div>`;
+  } else {
+    priceKeys.forEach(key => {
+      const val = prices[key];
+      if (!val && val !== 0) return;
+      const color = colorMap[key] || 'price-normal';
+      const formatted = `$${parseFloat(val).toFixed(2)}`;
+      grid.innerHTML += `<div class="price-item"><div class="price-label">${key}</div><div class="price-value ${color}">${formatted}</div></div>`;
+    });
+  }
+
+  document.getElementById('aiDescription').textContent = cardInfo.description || '';
+  document.getElementById('resultCard').style.display = 'block';
+}
+
+// ── UI helpers ───────────────────────────────────────────────
+function setStatus(msg) {
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('statusBar').style.display = 'flex';
+}
+function hideStatus() { document.getElementById('statusBar').style.display = 'none'; }
+function showError(msg) { const b = document.getElementById('errorBox'); b.textContent = msg; b.style.display = 'block'; }
+function hideResults() { document.getElementById('resultCard').style.display = 'none'; document.getElementById('errorBox').style.display = 'none'; }
+</script>
+</body>
+</html>
