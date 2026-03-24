@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card Scanner — Pokémon & Yu-Gi-Oh</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -86,63 +91,6 @@
     max-width: 300px;
   }
 
-  /* API Key input */
-  .api-section {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-  }
-
-  .api-label {
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    display: block;
-  }
-
-  .api-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .api-input {
-    flex: 1;
-    background: #0a0a0f;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text);
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .api-input:focus { border-color: var(--accent-blue); }
-  .api-input::placeholder { color: var(--muted); }
-
-  .api-save-btn {
-    background: var(--accent-blue);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    font-family: 'Orbitron', monospace;
-    font-size: 11px;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-
-  .api-save-btn:hover { opacity: 0.8; }
-  .api-saved { color: #22c55e; font-size: 12px; margin-top: 6px; display: none; }
-
   /* Upload zone */
   .upload-zone {
     border: 2px dashed var(--border);
@@ -197,7 +145,7 @@
 
   #fileInput { display: none; }
 
-  /* Camera button */
+  /* Buttons */
   .btn-row {
     display: flex;
     gap: 12px;
@@ -496,6 +444,66 @@
     font-style: italic;
   }
 
+  /* Scan history */
+  .history-section {
+    margin-top: 40px;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .history-item {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .history-item:hover { border-color: var(--accent-blue); }
+
+  .history-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .history-type {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .history-price {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #22c55e;
+  }
+
+  .history-clear {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: 'Orbitron', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+
+  .history-clear:hover { border-color: #ef4444; color: #ef4444; }
+
   @media (max-width: 480px) {
     .result-header { flex-direction: column; }
     .price-grid { grid-template-columns: repeat(2, 1fr); }
@@ -508,26 +516,16 @@
 
   <header>
     <div class="logo">Card Scanner</div>
-    <div class="logo-sub">Pokémon · Yu-Gi-Oh · Price Intel</div>
+    <div class="logo-sub">Pokemon &middot; Yu-Gi-Oh &middot; Price Intel</div>
     <div class="divider"></div>
   </header>
 
-  <!-- API Key -->
-  <div class="api-section">
-    <span class="api-label">🔑 Anthropic API Key (for card recognition)</span>
-    <div class="api-row">
-      <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-..." />
-      <button class="api-save-btn" onclick="saveApiKey()">Save</button>
-    </div>
-    <div class="api-saved" id="apiSaved">✓ Key saved for this session</div>
-  </div>
-
   <!-- Upload zone -->
   <div class="upload-zone" id="uploadZone">
-    <span class="upload-icon">🃏</span>
+    <span class="upload-icon">&#x1F0CF;</span>
     <div class="upload-title">Drop Your Card Here</div>
     <div class="upload-hint">
-      Drag & drop a card image, or <span onclick="document.getElementById('fileInput').click()">browse files</span>
+      Drag &amp; drop a card image, or <span onclick="document.getElementById('fileInput').click()">browse files</span>
     </div>
     <input type="file" id="fileInput" accept="image/*" capture="environment" />
   </div>
@@ -535,13 +533,13 @@
   <!-- Buttons -->
   <div class="btn-row">
     <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-      📁 Choose Image
+      Choose Image
     </button>
     <button class="btn btn-primary" onclick="openCamera()" id="cameraBtn">
-      📷 Use Camera
+      Use Camera
     </button>
     <button class="btn btn-primary" id="scanBtn" onclick="scanCard()" disabled>
-      🔍 Identify & Price
+      Identify &amp; Price
     </button>
   </div>
 
@@ -563,21 +561,28 @@
   <div class="result-card" id="resultCard">
     <div class="result-header">
       <div>
-        <div id="cardTypeBadge" class="card-type-badge badge-pokemon">Pokémon</div>
+        <div id="cardTypeBadge" class="card-type-badge badge-pokemon">Pokemon</div>
       </div>
       <div class="result-info">
-        <div class="result-name" id="cardName">—</div>
+        <div class="result-name" id="cardName">&mdash;</div>
         <div class="result-meta" id="cardMeta"></div>
       </div>
     </div>
     <div class="prices-section">
-      <div class="section-title">💰 Market Prices (USD)</div>
+      <div class="section-title">Market Prices (USD)</div>
       <div class="price-grid" id="priceGrid"></div>
     </div>
     <div class="desc-section">
-      <div class="section-title">🤖 AI Analysis</div>
+      <div class="section-title">AI Analysis</div>
       <div class="ai-description" id="aiDescription"></div>
     </div>
+  </div>
+
+  <!-- Scan History -->
+  <div class="history-section" id="historySection" style="display:none">
+    <div class="section-title" style="margin-bottom:16px">Recent Scans</div>
+    <div class="history-list" id="historyList"></div>
+    <button class="history-clear" onclick="clearHistory()">Clear History</button>
   </div>
 
 </div>
@@ -585,38 +590,20 @@
 <!-- Camera Modal -->
 <div class="modal-overlay" id="cameraModal">
   <div class="modal">
-    <div class="modal-title">📷 Camera Scanner</div>
+    <div class="modal-title">Camera Scanner</div>
     <video id="cameraVideo" autoplay playsinline muted></video>
     <canvas id="cameraCanvas" style="display:none"></canvas>
     <div class="modal-btns">
       <button class="btn btn-ghost" onclick="closeCamera()">Cancel</button>
-      <button class="btn btn-primary btn-snap" onclick="snapPhoto()">📸 Snap</button>
+      <button class="btn btn-primary btn-snap" onclick="snapPhoto()">Snap</button>
     </div>
   </div>
 </div>
 
 <script>
 let currentImageBase64 = null;
+let currentMediaType = 'image/jpeg';
 let cameraStream = null;
-
-// ── API Key ──────────────────────────────────────────────────
-function saveApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return;
-  sessionStorage.setItem('anthropic_key', key);
-  document.getElementById('apiSaved').style.display = 'block';
-  setTimeout(() => document.getElementById('apiSaved').style.display = 'none', 2000);
-}
-
-function getApiKey() {
-  return sessionStorage.getItem('anthropic_key') || document.getElementById('apiKeyInput').value.trim();
-}
-
-// Load saved key on start
-window.addEventListener('load', () => {
-  const saved = sessionStorage.getItem('anthropic_key');
-  if (saved) document.getElementById('apiKeyInput').value = saved;
-});
 
 // ── File input ───────────────────────────────────────────────
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -636,6 +623,7 @@ zone.addEventListener('drop', e => {
 });
 
 function loadImageFile(file) {
+  currentMediaType = file.type || 'image/jpeg';
   const reader = new FileReader();
   reader.onload = e => {
     const dataUrl = e.target.result;
@@ -674,6 +662,7 @@ function snapPhoto() {
   canvas.getContext('2d').drawImage(video, 0, 0);
   const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
   currentImageBase64 = dataUrl.split(',')[1];
+  currentMediaType = 'image/jpeg';
   document.getElementById('previewImg').src = dataUrl;
   document.getElementById('previewWrap').style.display = 'block';
   document.getElementById('scanBtn').disabled = false;
@@ -683,17 +672,16 @@ function snapPhoto() {
 
 // ── Main scan ────────────────────────────────────────────────
 async function scanCard() {
-  const apiKey = getApiKey();
-  if (!apiKey) { showError('Please enter your Anthropic API key first.'); return; }
   if (!currentImageBase64) { showError('Please load a card image first.'); return; }
 
-  setStatus('🤖 Identifying card with AI...');
+  setStatus('Identifying card with AI...');
   hideResults();
+  document.getElementById('scanBtn').disabled = true;
 
   try {
-    // Step 1: Claude identifies the card
-    const cardInfo = await identifyCard(apiKey, currentImageBase64);
-    setStatus(`✅ Found: ${cardInfo.name} — fetching prices...`);
+    // Step 1: Identify card via Netlify Function
+    const cardInfo = await identifyCard(currentImageBase64, currentMediaType);
+    setStatus('Found: ' + cardInfo.name + ' \u2014 fetching prices...');
 
     // Step 2: Fetch prices
     let prices = {};
@@ -705,100 +693,55 @@ async function scanCard() {
 
     // Step 3: Display
     displayResult(cardInfo, prices);
+    saveToHistory(cardInfo, prices);
     hideStatus();
 
   } catch (err) {
     hideStatus();
-    showError(`Scan failed: ${err.message}`);
+    showError('Scan failed: ' + err.message);
+  } finally {
+    document.getElementById('scanBtn').disabled = false;
   }
 }
 
-// ── Claude identification ────────────────────────────────────
-async function identifyCard(apiKey, base64) {
-  const prompt = `You are a trading card game expert. Analyze this card image and return ONLY a JSON object with no markdown, no explanation, just raw JSON.
-
-Identify if this is a Pokémon card or Yu-Gi-Oh card, then extract:
-
-For Pokémon:
-{
-  "type": "pokemon",
-  "name": "exact pokemon name (e.g. Charizard)",
-  "set": "set name (e.g. Base Set, Fossil, Sword & Shield)",
-  "number": "card number if visible (e.g. 4/102)",
-  "rarity": "Common/Uncommon/Rare/Holo Rare/Ultra Rare etc",
-  "year": "year if visible",
-  "description": "one sentence about this card's collector/gameplay value"
-}
-
-For Yu-Gi-Oh:
-{
-  "type": "yugioh",
-  "name": "exact card name as printed",
-  "set": "set name if visible",
-  "rarity": "Common/Rare/Super Rare/Ultra Rare/Secret Rare etc",
-  "cardType": "Monster/Spell/Trap",
-  "year": "year if visible",
-  "description": "one sentence about this card's collector/gameplay value"
-}
-
-If you cannot identify it clearly, return:
-{"type": "unknown", "name": "Unknown Card", "description": "Could not identify this card clearly."}
-
-Return ONLY the JSON object.`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
+// ── Card identification via Netlify Function ─────────────────
+async function identifyCard(base64, mediaType) {
+  const res = await fetch('/api/identify-card', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify({
-      model: 'claude-opus-4-5',
-      max_tokens: 500,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
-          { type: 'text', text: prompt }
-        ]
-      }]
-    })
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ image: base64, mediaType: mediaType })
   });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${res.status}`);
+    throw new Error(err.error || 'Card identification failed (status ' + res.status + ')');
   }
 
   const data = await res.json();
-  const text = data.content.map(b => b.text || '').join('').trim();
-  const clean = text.replace(/```json|```/g, '').trim();
-
-  try {
-    return JSON.parse(clean);
-  } catch {
-    throw new Error('Could not parse card identification response.');
-  }
+  if (data.error) throw new Error(data.error);
+  return data;
 }
 
-// ── Pokémon prices via TCGdex / pokemontcg.io ────────────────
+// ── Pokemon prices via pokemontcg.io ─────────────────────────
 async function fetchPokemonPrices(name, set) {
-  // Use TCGdex free API
   try {
     const query = encodeURIComponent(name);
-    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${query}"&pageSize=10`);
+    const res = await fetch('https://api.pokemontcg.io/v2/cards?q=name:"' + query + '"&pageSize=10');
     if (!res.ok) throw new Error('TCG API error');
     const data = await res.json();
 
-    if (!data.data || data.data.length === 0) return { source: 'Pokemon TCG API', note: 'No price data found' };
+    if (!data.data || data.data.length === 0) return { source: 'Pokemon TCG API', note: 'No price data found for this card.' };
 
     // Find best match (prefer matching set if possible)
     let card = data.data[0];
     if (set) {
       const setLower = set.toLowerCase();
-      const match = data.data.find(c => c.set?.name?.toLowerCase().includes(setLower));
+      const match = data.data.find(c => c.set && c.set.name && c.set.name.toLowerCase().includes(setLower));
       if (match) card = match;
     }
 
-    const prices = card.tcgplayer?.prices || {};
-    const result = { source: 'TCGPlayer via Pokemon TCG API', cardFound: card.name, set: card.set?.name };
+    const prices = card.tcgplayer && card.tcgplayer.prices ? card.tcgplayer.prices : {};
+    const result = { source: 'TCGPlayer via Pokemon TCG API', cardFound: card.name, set: card.set ? card.set.name : '' };
 
     if (prices.normal) result.Normal = prices.normal.market || prices.normal.mid;
     if (prices.holofoil) result.Holofoil = prices.holofoil.market || prices.holofoil.mid;
@@ -808,7 +751,7 @@ async function fetchPokemonPrices(name, set) {
 
     return result;
   } catch (e) {
-    return { source: 'Pokemon TCG API', note: `Could not fetch: ${e.message}` };
+    return { source: 'Pokemon TCG API', note: 'Could not fetch prices: ' + e.message };
   }
 }
 
@@ -816,10 +759,10 @@ async function fetchPokemonPrices(name, set) {
 async function fetchYugiohPrices(name) {
   try {
     const query = encodeURIComponent(name);
-    const res = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?name=${query}`);
+    const res = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?name=' + query);
     if (!res.ok) {
       // Try fuzzy search
-      const fuzzy = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${query}&num=5&offset=0`);
+      const fuzzy = await fetch('https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=' + query + '&num=5&offset=0');
       if (!fuzzy.ok) throw new Error('YGOPRODeck API error');
       const fd = await fuzzy.json();
       if (!fd.data || fd.data.length === 0) return { source: 'YGOPRODeck', note: 'Card not found' };
@@ -829,7 +772,7 @@ async function fetchYugiohPrices(name) {
     if (!data.data || data.data.length === 0) return { source: 'YGOPRODeck', note: 'No data' };
     return extractYgoPrices(data.data[0]);
   } catch (e) {
-    return { source: 'YGOPRODeck', note: `Could not fetch: ${e.message}` };
+    return { source: 'YGOPRODeck', note: 'Could not fetch prices: ' + e.message };
   }
 }
 
@@ -852,7 +795,7 @@ function displayResult(cardInfo, prices) {
 
   // Badge
   const badge = document.getElementById('cardTypeBadge');
-  badge.textContent = isPoke ? '⚡ Pokémon' : (isYgo ? '🔮 Yu-Gi-Oh!' : '🃏 Unknown');
+  badge.textContent = isPoke ? 'Pokemon' : (isYgo ? 'Yu-Gi-Oh!' : 'Unknown');
   badge.className = 'card-type-badge ' + (isPoke ? 'badge-pokemon' : 'badge-yugioh');
 
   // Name
@@ -860,12 +803,12 @@ function displayResult(cardInfo, prices) {
 
   // Meta
   let meta = '';
-  if (cardInfo.set) meta += `<strong>Set:</strong> ${cardInfo.set}<br>`;
-  if (cardInfo.number) meta += `<strong>Number:</strong> ${cardInfo.number}<br>`;
-  if (cardInfo.rarity) meta += `<strong>Rarity:</strong> ${cardInfo.rarity}<br>`;
-  if (cardInfo.cardType) meta += `<strong>Type:</strong> ${cardInfo.cardType}<br>`;
-  if (cardInfo.year) meta += `<strong>Year:</strong> ${cardInfo.year}<br>`;
-  if (prices.source) meta += `<strong>Price Source:</strong> ${prices.source}`;
+  if (cardInfo.set) meta += '<strong>Set:</strong> ' + escapeHtml(cardInfo.set) + '<br>';
+  if (cardInfo.number) meta += '<strong>Number:</strong> ' + escapeHtml(cardInfo.number) + '<br>';
+  if (cardInfo.rarity) meta += '<strong>Rarity:</strong> ' + escapeHtml(cardInfo.rarity) + '<br>';
+  if (cardInfo.cardType) meta += '<strong>Type:</strong> ' + escapeHtml(cardInfo.cardType) + '<br>';
+  if (cardInfo.year) meta += '<strong>Year:</strong> ' + escapeHtml(cardInfo.year) + '<br>';
+  if (prices.source) meta += '<strong>Price Source:</strong> ' + escapeHtml(prices.source);
   document.getElementById('cardMeta').innerHTML = meta;
 
   // Prices
@@ -877,7 +820,7 @@ function displayResult(cardInfo, prices) {
 
   if (priceKeys.length === 0) {
     const note = prices.note || 'No pricing data available for this card.';
-    grid.innerHTML = `<div class="no-price" style="grid-column:1/-1">${note}</div>`;
+    grid.innerHTML = '<div class="no-price" style="grid-column:1/-1">' + escapeHtml(note) + '</div>';
   } else {
     const colorMap = {
       'Normal': 'price-normal', 'Holofoil': 'price-holofoil', 'Reverse Holo': 'price-reverseHolo',
@@ -885,16 +828,12 @@ function displayResult(cardInfo, prices) {
       'TCGPlayer': 'price-market', 'Card Market': 'price-mid', 'eBay': 'price-high',
       'Amazon': 'price-low', 'Cool Stuff Inc': 'price-unlimited'
     };
-    priceKeys.forEach(key => {
-      const val = prices[key];
+    priceKeys.forEach(function(key) {
+      var val = prices[key];
       if (!val && val !== 0) return;
-      const color = colorMap[key] || 'price-normal';
-      const formatted = typeof val === 'number' ? `$${val.toFixed(2)}` : `$${parseFloat(val).toFixed(2)}`;
-      grid.innerHTML += `
-        <div class="price-item">
-          <div class="price-label">${key}</div>
-          <div class="price-value ${color}">${formatted}</div>
-        </div>`;
+      var color = colorMap[key] || 'price-normal';
+      var formatted = typeof val === 'number' ? '$' + val.toFixed(2) : '$' + parseFloat(val).toFixed(2);
+      grid.innerHTML += '<div class="price-item"><div class="price-label">' + escapeHtml(key) + '</div><div class="price-value ' + color + '">' + formatted + '</div></div>';
     });
   }
 
@@ -902,7 +841,62 @@ function displayResult(cardInfo, prices) {
   document.getElementById('resultCard').style.display = 'block';
 }
 
+// ── Scan History ─────────────────────────────────────────────
+function saveToHistory(cardInfo, prices) {
+  var history = JSON.parse(localStorage.getItem('scan_history') || '[]');
+  var topPrice = 0;
+  var skipKeys = ['source', 'cardFound', 'set', 'note'];
+  Object.keys(prices).forEach(function(k) {
+    if (!skipKeys.includes(k)) {
+      var v = parseFloat(prices[k]);
+      if (v > topPrice) topPrice = v;
+    }
+  });
+  history.unshift({
+    name: cardInfo.name,
+    type: cardInfo.type,
+    topPrice: topPrice,
+    time: new Date().toISOString()
+  });
+  if (history.length > 20) history = history.slice(0, 20);
+  localStorage.setItem('scan_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  var history = JSON.parse(localStorage.getItem('scan_history') || '[]');
+  var section = document.getElementById('historySection');
+  var list = document.getElementById('historyList');
+
+  if (history.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = '';
+  history.forEach(function(item) {
+    var typeLabel = item.type === 'pokemon' ? 'Pokemon' : (item.type === 'yugioh' ? 'Yu-Gi-Oh!' : 'Card');
+    var priceText = item.topPrice > 0 ? '$' + item.topPrice.toFixed(2) : 'N/A';
+    list.innerHTML += '<div class="history-item"><div><div class="history-name">' + escapeHtml(item.name) + '</div><div class="history-type">' + typeLabel + '</div></div><div class="history-price">' + priceText + '</div></div>';
+  });
+}
+
+function clearHistory() {
+  localStorage.removeItem('scan_history');
+  renderHistory();
+}
+
+// Load history on start
+window.addEventListener('load', renderHistory);
+
 // ── UI helpers ───────────────────────────────────────────────
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function setStatus(msg) {
   document.getElementById('statusText').textContent = msg;
   document.getElementById('statusBar').style.display = 'flex';
@@ -913,7 +907,7 @@ function hideStatus() {
 }
 
 function showError(msg) {
-  const box = document.getElementById('errorBox');
+  var box = document.getElementById('errorBox');
   box.textContent = msg;
   box.style.display = 'block';
 }
@@ -921,6 +915,11 @@ function showError(msg) {
 function hideResults() {
   document.getElementById('resultCard').style.display = 'none';
   document.getElementById('errorBox').style.display = 'none';
+}
+
+// ── PWA Service Worker ───────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
 }
 </script>
 </body>

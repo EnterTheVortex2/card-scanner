@@ -1,0 +1,10 @@
+{
+  "name": "card-scanner",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pokemon and Yu-Gi-Oh card scanner with live price lookup",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "@netlify/functions": "^3.0.0"
+  }
+}
